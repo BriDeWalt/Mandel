@@ -10,12 +10,15 @@ class ThreadLock(object):
         self.lock = threading.Lock()
     def addValues(self, values):
         self.lock.acquire()
+        # print('lock')
         try:
             global bigframe
             bigframe = pd.concat((bigframe, values))
+            bigframe.sort_index(inplace=True)
             bigframe.to_csv("numbers.csv")
         finally:
             self.lock.release()
+            # print('unlock')
 
 def createFrame():
     return pd.read_csv('numbers.csv', index_col=0)
@@ -62,7 +65,7 @@ def threadfun(start, threadnum, totalthreads, lock):
             threadcount += 1
         else:
             lock.addValues(threadframe)
-            threadframe = pd.DataFrame()
+            threadframe = pd.DataFrame(columns=['steps','osteps','esteps','odd','prime','exponote','primefactors','factors'])
             threadcount = 0
             threadtotal += 1
             if threadtotal > count:
@@ -91,7 +94,7 @@ if __name__ == "__main__":
         # stop = 20
         running = True
         count = 0
-        threads = 8
+        threads = 1
         locker = ThreadLock()
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=threads) as executor:
